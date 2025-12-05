@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+/* index.css */
+
+.login-bg {
+  position: absolute;
+  top: 50%;
+  left: -93px;
+  transform: translateY(-50%) scaleX(-1);
+  width: 796px;
+  height: 796px;
+  opacity: 0.1;
+  background-image: url("../assets/bg-login.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+.login-box {
+  position: relative;
+  width: 1366px;
+  height: 768px;
+  top: 156px;
+  left: 277px;
+  border-radius: 24px;
+  background: #FFFFFF1A;
+  opacity: 1;
+}

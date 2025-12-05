@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Face Recognition Camera</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background-color: #111;
+      color: #fff;
+    }
+    video {
+      border: 3px solid #4caf50;
+      border-radius: 10px;
+      width: 480px;
+      height: 360px;
+      margin-top: 20px;
+    }
+    button {
+      margin: 15px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #4caf50;
+      color: white;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🎥 Face Recognition Test</h2>
+  <video id="camera" autoplay></video><br>
+  <button id="capture">📸 Ambil Foto</button>
+  <div id="result">Hasil akan muncul di sini...</div>
+
+  <canvas id="preview" style="display:none;"></canvas>
+
+  <script>
+    const video = document.getElementById('camera');
+    const canvas = document.getElementById('preview');
+    const captureBtn = document.getElementById('capture');
+    const resultDiv = document.getElementById('result');
+
+    // aktifkan kamera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        alert('Gagal membuka kamera: ' + err);
+      });
+
+    // saat tombol diklik, ambil 1 foto dan kirim ke API
+    captureBtn.addEventListener('click', async () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+
+      canvas.toBlob(async (blob) => {
+        const formData = new FormData();
+        formData.append('file', blob, 'photo.jpg');
+
+        try {
+          const response = await fetch('http://127.0.0.1:8000/recognize', {
+            method: 'POST',
+            body: formData
+          });
+
+          const data = await response.json();
+          resultDiv.innerHTML = `
+            <b>Nama terdeteksi:</b> ${data.name}<br>
+            <b>Similarity:</b> ${(data.similarity * 100).toFixed(2)}%
+          `;
+        } catch (error) {
+          resultDiv.innerHTML = '❌ Error: ' + error;
+        }
+      }, 'image/jpeg');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+enum JenisAbsen {
+  DATANG
+  PULANG
+}
+
+enum StatusAbsen {
+  HADIR
+  TERLAMBAT
+  ALPHA
+  CUTI
+  SAKIT
+  IZIN
+  WFH
+}
+
+enum JenisIzin {
+  SAKIT
+  CUTI
+  IZIN
+  WFH
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  NIP       String    @unique
+  password  String
+  role      String
+  is_active Boolean   @default(true)
+  karyawan  Karyawan?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  absensiConfig AbsensiConfig[]
+  izin      Izin[]
+}
+
+
+
+model Karyawan {
+  id            Int             @id @default(autoincrement())
+  NIP           String          @unique
+  NIK           String?          @unique
+  tanggal_lahir DateTime?          
+  nama          String
+  alamat        String
+  id_divisi     Int?
+  id_grade      Int?
+  foto          String?
+  is_active     Boolean         @default(true)
+  created_at    DateTime        @default(now())
+  updated_at    DateTime        @updatedAt
+
+  userId        Int?            @unique       // ← FK + unique = one-to-one
+  user          User?           @relation(fields: [userId], references: [id])
+
+  divisi        Divisi?         @relation(fields: [id_divisi], references: [id], onDelete: SetNull)
+  grade         Grade?          @relation(fields: [id_grade], references: [id], onDelete: SetNull)
+
+  absen         Absen[]
+  izin          Izin[]
+  
+  faces         KaryawanFace[]
+  embedding     FaceEmbedding?
+}
+
+
+model Divisi {
+  id          Int         @id @default(autoincrement())
+  nama_divisi String
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+  karyawan    Karyawan[]
+}
+
+model Grade {
+  id          Int         @id @default(autoincrement())
+  grade       String
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+  karyawan    Karyawan[]
+}
+
+model Absen {
+  id             Int             @id @default(autoincrement())
+  id_karyawan    Int
+  id_config      Int             // FK ke config
+  waktu          DateTime
+  jenis          JenisAbsen
+  status         StatusAbsen
+  device_id      String?
+  lokasi         String?
+  keterangan     String?
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
+
+  karyawan       Karyawan        @relation(fields: [id_karyawan], references: [id], onDelete: Cascade)
+  config         AbsensiConfig   @relation(fields: [id_config], references: [id])
+}
+
+
+model Izin {
+  id               Int        @id @default(autoincrement())
+  id_karyawan      Int
+  jenis            JenisIzin
+  tanggal_mulai    DateTime
+  tanggal_selesai  DateTime
+  alasan           String?
+  lampiran         String?
+  dibuat_pada      DateTime   @default(now())
+  dibuat_oleh      Int
+
+  // Relations
+  karyawan         Karyawan   @relation(fields: [id_karyawan], references: [id], onDelete: Cascade)
+  pembuat          User       @relation(fields: [dibuat_oleh], references: [id])
+}
+
+model AbsensiConfig {
+  id            Int       @id @default(autoincrement())
+  tanggal       DateTime  // hari absensi
+  jam_mulai     DateTime  // kapan kamera ON
+  jam_selesai   DateTime  // kapan kamera OFF
+  jenis         JenisAbsen // datang atau pulang
+  dibuat_oleh   Int       // user HRD
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+
+  user          User      @relation(fields: [dibuat_oleh], references: [id])
+  absen         Absen[] 
+}
+
+model KaryawanFace {
+  id           Int       @id @default(autoincrement())
+  id_karyawan  Int
+  foto_url     String    // URL atau path file
+  created_at   DateTime  @default(now())
+
+  karyawan     Karyawan  @relation(fields: [id_karyawan], references: [id], onDelete: Cascade)
+}
+
+model FaceEmbedding {
+  id           Int       @id @default(autoincrement())
+  id_karyawan  Int       @unique
+  embedding    Json      // array of floats (e.g. 512-dim)
+  source       String?   // optional: model name / last_generated_by
+  created_at   DateTime  @default(now())
+  updated_at   DateTime  @updatedAt
+
+  karyawan     Karyawan  @relation(fields: [id_karyawan], references: [id], onDelete: Cascade)
+}
