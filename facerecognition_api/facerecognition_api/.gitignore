@@ -2,5 +2,5 @@ __pycache__/
 *.pyc
 .env
 
-fae_images/
+face_images/
 encodings/
