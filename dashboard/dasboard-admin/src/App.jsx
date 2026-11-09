@@ -16,6 +16,11 @@ import DetailKehadiranPage from "./pages/kehadiran/detailkehadiran";
 import PerizinanPage from "./pages/perizinan/perizinanPage";
 import CreatePerizinanPage from "./pages/perizinan/createizin";
 import KaryawanDetailPage from "./pages/karyawan/KaryawanDetailPage";
+import TambahAbsenManual from "./pages/kehadiran/createkehadiran";
+import LemburPage from "./pages/lembur/lembur";
+import LemburConfigPage from "./pages/lembur/lemburConfigPage";
+import EditIzin from "./pages/perizinan/editizin";
+import EditKaryawanPage from "./pages/karyawan/EditKaryawanPage";
 
 export default function App() {
   return (
@@ -121,6 +126,15 @@ export default function App() {
       />
 
       <Route
+        path="/karyawan/edit/:id"
+        element={
+          <PrivateRoute allowedRoles={["admin", "HRD"]}>
+            <EditKaryawanPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
         path="/kehadiran"
         element={
           <PrivateRoute allowedRoles={["admin", "HRD", "kadiv"]}>
@@ -130,7 +144,7 @@ export default function App() {
       />
 
       <Route
-        path="detail/kehadiran/:id"
+        path="/detail/kehadiran/:tanggal"
         element={
           <PrivateRoute allowedRoles={["admin", "HRD", "kadiv"]}>
             <DetailKehadiranPage />
@@ -138,6 +152,16 @@ export default function App() {
         }
       />
 
+      <Route
+        path="/kehadiran/:id/create-manual"
+        element={
+          <PrivateRoute allowedRoles={["HRD"]}>
+            <TambahAbsenManual />
+          </PrivateRoute>
+        }
+      />
+
+      {/* IZIN */}
       <Route
         path="perizinan/"
         element={
@@ -152,6 +176,33 @@ export default function App() {
         element={
           <PrivateRoute allowedRoles={["HRD"]}>
             <CreatePerizinanPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path="Perizinan/edit/:id"
+        element={
+          <PrivateRoute allowedRoles={["HRD"]}>
+            <EditIzin />
+          </PrivateRoute>
+        }
+      />
+
+      {/* LEMBUR */}
+      <Route
+        path="/lembur/detail/:id"
+        element={
+          <PrivateRoute allowedRoles={["HRD", "kadiv", "admin"]}>
+            <LemburPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/lembur-config-page"
+        element={
+          <PrivateRoute allowedRoles={["HRD", "kadiv", "admin"]}>
+            <LemburConfigPage />
           </PrivateRoute>
         }
       />

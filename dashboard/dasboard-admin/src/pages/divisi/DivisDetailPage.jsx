@@ -80,110 +80,126 @@ export default function DivisiDetailPage() {
 
   const handleSearchButton = () => setSearchInput((s) => s);
 
-  if (loading) return <p className="text-center mt-10">Memuat data...</p>;
+  if (loading) {
+       return (
+        <div className="flex min-h-screen bg-gray-100">
+          <Sidebar />
+          <div className="flex-1 ml-64 p-8 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-teal-500"></div>
+          </div>
+        </div>
+      );
+    }
 
   return (
-    <div className="flex">
+    <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
 
-      <div className="flex-1 p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">
+      <div className="flex-1 ml-64 p-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-800">
             Detail Divisi: {divisi?.nama_divisi ?? "-"}
           </h1>
           <Button
             onClick={() => navigate("/divisi")}
-            className="bg-gray-500 hover:bg-gray-600 text-white"
+            className="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 shadow-sm"
           >
             ← Kembali
           </Button>
         </div>
 
-        <p className="text-sm text-gray-500 mb-4">
-          Daftar karyawan dalam divisi ini.
-        </p>
-
         {/* 🔍 Search & Filter */}
-        <div className="flex flex-wrap gap-3 mb-4">
-          <input
-            type="text"
-            placeholder="Cari nama atau NIP..."
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleSearchButton();
-            }}
-            className="border rounded-md px-3 py-2 w-1/3"
-          />
-          <Button
-            onClick={handleSearchButton}
-            className="bg-teal-800 hover:bg-teal-900 text-white"
-          >
-            Search
-          </Button>
+        <div className="bg-white p-4 rounded-xl shadow-sm mb-6">
+          <div className="flex flex-wrap gap-3">
+            <div className="flex gap-2 flex-1 min-w-[300px]">
+              <input
+                type="text"
+                placeholder="Cari nama atau NIP..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSearchButton();
+                }}
+                className="border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+              <Button
+                onClick={handleSearchButton}
+                className="bg-teal-700 hover:bg-teal-800 text-white"
+              >
+                Cari
+              </Button>
+            </div>
 
-          {/* 🔽 Dropdown Grade */}
-          <select
-            value={filters.gradeId}
-            onChange={(e) =>
-              setFilters((f) => ({ ...f, gradeId: e.target.value }))
-            }
-            className="border rounded-md px-3 py-2"
-          >
-            <option value="">Semua Grade</option>
-            {gradeList.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.grade}
-              </option>
-            ))}
-          </select>
+            {/* 🔽 Dropdown Grade */}
+            <select
+              value={filters.gradeId}
+              onChange={(e) =>
+                setFilters((f) => ({ ...f, gradeId: e.target.value }))
+              }
+              className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="">Semua Grade</option>
+              {gradeList.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.grade}
+                </option>
+              ))}
+            </select>
 
-          <Button
-            onClick={() => {
-              setSearchInput("");
-              setFilters({ gradeId: "" });
-            }}
-            className="bg-gray-300 hover:bg-gray-400 text-gray-800"
-          >
-            Reset
-          </Button>
+            <Button
+              onClick={() => {
+                setSearchInput("");
+                setFilters({ gradeId: "" });
+              }}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300"
+            >
+              Reset
+            </Button>
+          </div>
         </div>
 
         {/* 📋 Tabel Karyawan */}
-        <table className="w-full border border-[#2B484F] shadow-sm rounded-lg overflow-hidden">
-          <thead className="bg-[#2B484F] text-white">
-            <tr>
-              <th className="p-2 text-center">NIP</th>
-              <th className="p-2 text-center">Nama</th>
-              <th className="p-2 text-center">Divisi</th>
-              <th className="p-2 text-center">Grade</th>
-              <th className="p-2 text-center">No. Telepon</th>
-              <th className="p-2 text-center">Alamat</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredKaryawan.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-[#2B484F] text-white">
               <tr>
-                <td colSpan={6} className="text-center p-4">
-                  Tidak ada karyawan yang sesuai filter.
-                </td>
+                <th className="p-3">NIP</th>
+                <th className="p-3">Nama</th>
+                <th className="p-3">Divisi</th>
+                <th className="p-3">Grade</th>
+                <th className="p-3">No. Telepon</th>
+                <th className="p-3">Alamat</th>
               </tr>
-            ) : (
-              filteredKaryawan.map((k) => (
-                <tr key={k.id} className="hover:bg-gray-50">
-                  <td className="p-2 text-center">{k.NIP ?? "-"}</td>
-                  <td className="p-2 text-center">{k.nama ?? "-"}</td>
-                  <td className="p-2 text-center">
-                    {divisi?.nama_divisi ?? "-"}
+            </thead>
+            <tbody>
+              {filteredKaryawan.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center p-6 text-gray-500">
+                    Tidak ada karyawan yang sesuai filter.
                   </td>
-                  <td className="p-2 text-center">{k.grade?.grade ?? "-"}</td>
-                  <td className="p-2 text-center">{k.no_telp ?? "-"}</td>
-                  <td className="p-2 text-center">{k.alamat ?? "-"}</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredKaryawan.map((k) => (
+                  <tr
+                    key={k.id}
+                    className="border-t hover:bg-gray-50 transition"
+                  >
+                    <td className="p-3">{k.NIP ?? "-"}</td>
+                    <td className="p-3 font-medium text-gray-900">
+                      {k.nama ?? "-"}
+                    </td>
+                    <td className="p-3">{divisi?.nama_divisi ?? "-"}</td>
+                    <td className="p-3">{k.grade?.grade ?? "-"}</td>
+                    <td className="p-3">{k.no_telp ?? "-"}</td>
+                    <td className="p-3 truncate max-w-[200px]" title={k.alamat}>
+                      {k.alamat ?? "-"}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

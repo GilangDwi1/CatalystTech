@@ -1,12 +1,23 @@
 import { useState, useEffect } from "react";
-import api from "@/api/axiosInstance"; // ← sudah include JWT
+import { useNavigate } from "react-router-dom";
+import Select from "react-select";
+import api from "@/api/axiosInstance";
 import Sidebar from "@/components/Sidebar";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 export default function TambahIzinPage() {
-  const [karyawanList, setKaryawanList] = useState([]);
+  const navigate = useNavigate();
+
+  const [karyawanOptions, setKaryawanOptions] = useState([]);
+  const [selectedKaryawan, setSelectedKaryawan] = useState(null);
+  const [tanggalMulai, setTanggalMulai] = useState(null);
+  const [tanggalSelesai, setTanggalSelesai] = useState(null);
+  const [errorTanggal, setErrorTanggal] = useState("");
+
 
   const [form, setForm] = useState({
-    karyawanId: "",
     tanggalMulai: "",
     tanggalSelesai: "",
     jenisIzin: "IZIN",
@@ -16,46 +27,68 @@ export default function TambahIzinPage() {
 
   useEffect(() => {
     api
-      .get("/karyawan") // mengambil list karyawan (dengan JWT)
-      .then((res) => setKaryawanList(res.data))
-      .catch((err) => console.error(err));
+      .get("/karyawan?is_active=true")
+      .then((res) => {
+        const options = res.data.map((k) => ({
+          value: k.id,
+          label: `${k.nama} - ${k.NIP} `,
+        }));
+        setKaryawanOptions(options);
+      })
+      .catch(console.error);
   }, []);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setForm({
+
+    const newForm = {
       ...form,
       [name]: files ? files[0] : value,
-    });
+    };
+
+    if (
+      newForm.tanggalMulai &&
+      newForm.tanggalSelesai &&
+      new Date(newForm.tanggalSelesai) < new Date(newForm.tanggalMulai)
+    ) {
+      setErrorTanggal("Tanggal tidak valid");
+    } else {
+      setErrorTanggal("");
+    }
+
+    setForm(newForm);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!selectedKaryawan) {
+      alert("Karyawan wajib dipilih");
+      return;
+    }
+
+    if (errorTanggal) return;
+
     const body = new FormData();
-    body.append("id_karyawan", form.karyawanId); // HARUS ini
-    body.append("jenis", form.jenisIzin); // HARUS ini (IZIN, SAKIT, CUTI, WFH)
-    body.append("tanggal_mulai", form.tanggalMulai); // HARUS snake_case
-    body.append("tanggal_selesai", form.tanggalSelesai);
+    body.append("id_karyawan", selectedKaryawan.value);
+    body.append("jenis", form.jenisIzin);
+    body.append(
+      "tanggal_mulai",
+      tanggalMulai ? tanggalMulai.toISOString().split("T")[0] : ""
+    );
+    body.append(
+      "tanggal_selesai",
+      tanggalSelesai ? tanggalSelesai.toISOString().split("T")[0] : ""
+    );
     body.append("alasan", form.keterangan);
     if (form.filePendukung) body.append("lampiran", form.filePendukung);
 
-
     try {
-      await api.post("/izin", body, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
+      await api.post("/izin", body);
       alert("Izin berhasil ditambahkan");
 
-      setForm({
-        karyawanId: "",
-        tanggalMulai: "",
-        tanggalSelesai: "",
-        jenisIzin: "IZIN",
-        keterangan: "",
-        filePendukung: null,
-      });
+      // ✅ REDIRECT KE HALAMAN PERIZINAN
+      navigate("/perizinan");
     } catch (err) {
       console.error(err);
       alert("Gagal menambah izin");
@@ -66,67 +99,102 @@ export default function TambahIzinPage() {
     <div className="flex">
       <Sidebar />
 
-      <div className="flex-1 p-8">
-        <div className="max-w-xl mx-auto bg-white rounded-xl shadow p-6">
-          <h2 className="text-2xl font-bold mb-6">Tambah Izin Karyawan</h2>
+      <div className="flex-1 ml-64 p-6 bg-gray-100 min-h-screen">
+        <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-sm p-6">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800">
+            Tambah Izin Karyawan
+          </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Karyawan */}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* ================= KARYAWAN (REACT SELECT) ================= */}
             <div>
-              <label className="block mb-1 font-semibold">Karyawan</label>
-              <select
-                name="karyawanId"
-                value={form.karyawanId}
-                onChange={handleChange}
-                required
-                className="w-full border rounded p-2"
-              >
-                <option value="">-- Pilih Karyawan --</option>
-                {karyawanList.map((k) => (
-                  <option key={k.id} value={k.id}>
-                    {k.nama} ({k.nip})
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Tanggal mulai */}
-            <div>
-              <label className="block mb-1 font-semibold">Tanggal Mulai</label>
-              <input
-                type="date"
-                name="tanggalMulai"
-                value={form.tanggalMulai}
-                onChange={handleChange}
-                required
-                className="w-full border rounded p-2"
+              <label className="block mb-1 font-medium">Karyawan</label>
+              <Select
+                options={karyawanOptions}
+                value={selectedKaryawan}
+                onChange={setSelectedKaryawan}
+                placeholder="Cari nama atau NIP..."
+                isClearable
+                styles={{
+                  control: (base) => ({
+                    ...base,
+                    zIndex: 20,
+                  }),
+                  menuPortal: (base) => ({
+                    ...base,
+                    zIndex: 30,
+                  }),
+                }}
+                menuPortalTarget={document.body}
               />
             </div>
+            <label className="block mb-1 font-medium">Tanggal</label>
+            {/* ================= TANGGAL ================= */}
 
-            {/* Tanggal selesai */}
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* TANGGAL MULAI */}
+                <DatePicker
+                  label="Tanggal Mulai"
+                  value={tanggalMulai}
+                  onChange={(value) => {
+                    setTanggalMulai(value);
+
+                    if (tanggalSelesai && value && tanggalSelesai < value) {
+                      setErrorTanggal("Tanggal tidak valid");
+                    } else {
+                      setErrorTanggal("");
+                    }
+                  }}
+                  slotProps={{
+                    field: { clearable: true },
+                    textField: {
+                      variant: "outlined",
+                      fullWidth: true,
+                      size: "small",
+                    },
+                  }}
+                />
+
+                {/* TANGGAL SELESAI */}
+                <DatePicker
+                  label="Tanggal Selesai"
+                  value={tanggalSelesai}
+                  minDate={tanggalMulai} // 🔒 disable sebelum tanggal mulai
+                  onChange={(value) => {
+                    setTanggalSelesai(value);
+
+                    if (tanggalMulai && value && value < tanggalMulai) {
+                      setErrorTanggal("Tanggal tidak valid");
+                    } else {
+                      setErrorTanggal("");
+                    }
+                  }}
+                  slotProps={{
+                    field: { clearable: true },
+                    textField: {
+                      fullWidth: true,
+                      size: "small",
+                      error: Boolean(errorTanggal),
+                      helperText: errorTanggal,
+                    },
+                  }}
+                />
+              </div>
+            </LocalizationProvider>
+
+            {/* ================= JENIS IZIN ================= */}
             <div>
-              <label className="block mb-1 font-semibold">
-                Tanggal Selesai
-              </label>
-              <input
-                type="date"
-                name="tanggalSelesai"
-                value={form.tanggalSelesai}
-                onChange={handleChange}
-                required
-                className="w-full border rounded p-2"
-              />
-            </div>
-
-            {/* Jenis izin */}
-            <div>
-              <label className="block mb-2 font-semibold">Jenis Izin</label>
-
-              <div className="grid grid-cols-2 gap-3">
+              <label className="block mb-2 font-medium">Jenis Izin</label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {["IZIN", "SAKIT", "CUTI", "WFH"].map((j) => (
                   <label
                     key={j}
-                    className="flex items-center gap-2 border p-2 rounded cursor-pointer hover:bg-gray-50"
+                    className={`flex justify-center items-center rounded-lg border py-2 cursor-pointer ${
+                      form.jenisIzin === j
+                        ? "bg-teal-600 text-white"
+                        : "hover:bg-gray-50"
+                    }`}
                   >
                     <input
                       type="radio"
@@ -134,6 +202,7 @@ export default function TambahIzinPage() {
                       value={j}
                       checked={form.jenisIzin === j}
                       onChange={handleChange}
+                      className="hidden"
                     />
                     {j}
                   </label>
@@ -141,47 +210,50 @@ export default function TambahIzinPage() {
               </div>
             </div>
 
-            {/* Keterangan */}
+            {/* ================= KETERANGAN ================= */}
             <div>
-              <label className="block mb-1 font-semibold">Keterangan</label>
+              <label className="block mb-1 font-medium">Keterangan</label>
               <textarea
                 name="keterangan"
                 rows={3}
                 value={form.keterangan}
                 onChange={handleChange}
                 required
-                className="w-full border rounded p-2"
-              ></textarea>
+                className="w-full border rounded-lg px-3 py-2"
+              />
             </div>
 
-            {/* File pendukung */}
+            {/* ================= FILE ================= */}
             <div>
-              <label className="block mb-1 font-semibold">
+              <label className="block mb-1 font-medium">
                 File Pendukung (Opsional)
               </label>
-
-              <div className="border rounded p-3 bg-gray-50">
-                <input
-                  type="file"
-                  name="filePendukung"
-                  onChange={handleChange}
-                  className="w-full"
-                />
-
-                {form.filePendukung && (
-                  <p className="mt-2 text-sm text-gray-600">
-                    File dipilih: <strong>{form.filePendukung.name}</strong>
-                  </p>
-                )}
-              </div>
+              <input
+                type="file"
+                name="filePendukung"
+                onChange={handleChange}
+                className="w-full border rounded-lg p-2 bg-gray-50"
+              />
             </div>
 
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
-            >
-              Simpan Izin
-            </button>
+            {/* ================= ACTION BUTTON ================= */}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => navigate("/perizinan")}
+                className="w-1/2 border text-white bg-gray-700 py-2 rounded-lg hover:bg-gray-800"
+              >
+                Batalkan
+              </button>
+
+              <button
+                type="submit"
+                disabled={!!errorTanggal}
+                className="w-1/2 bg-teal-600 text-white py-2 rounded-lg hover:bg-teal-700 disabled:opacity-50"
+              >
+                Simpan Izin
+              </button>
+            </div>
           </form>
         </div>
       </div>

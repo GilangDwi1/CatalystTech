@@ -9,11 +9,15 @@ import { DivisiGradeModule } from './divisi-grade/divisi-grade.module';
 import { FaceRecognitionModule } from './face-recognition/face-recognition.module';
 import { AbsensiConfigModule } from './absensi-config/absensi-config.module';
 import { FaceEmbeddingModule } from './face-embedding/face-embedding.module';
+import { LemburModule } from './lembur/lembur.module';
+import { LemburConfigModule } from './lembur-config/lembur-config.module';
 import { AbsenModule } from './absen/absen.module'; 
 import { FacesModule } from './faces/faces.module';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { join } from 'path';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const staticPath = join(__dirname, '..', 'uploads');
 console.log('Serving static files from:', staticPath);
@@ -25,6 +29,7 @@ console.log('Serving static files from:', staticPath);
     }),
     PrismaModule,
     AuthModule,
+    ScheduleModule.forRoot(),
     KaryawanModule,
     AbsensiConfigModule,
     AbsenModule,
@@ -34,6 +39,9 @@ console.log('Serving static files from:', staticPath);
     UserModule,
     FacesModule,
     FaceEmbeddingModule,
+    LemburModule,
+    LemburConfigModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

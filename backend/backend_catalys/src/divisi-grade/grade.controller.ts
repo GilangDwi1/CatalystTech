@@ -32,7 +32,7 @@ export class GradeController {
   }
 
   @Delete(':id')
-  @Roles('admin')
+  @Roles('admin', "HRD")
   remove(@Param('id') id: string) {
     return this.gradeService.remove(+id);
   }

@@ -23,4 +23,7 @@ def get_face_embedding(img):
     if not faces:
         return None
 
-    return faces[0].embedding
+    face = max(faces, key=lambda f: (f.bbox[2]-f.bbox[0]) * (f.bbox[3]-f.bbox[1]))
+
+    return face.normed_embedding
+

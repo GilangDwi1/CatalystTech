@@ -13,7 +13,9 @@ export class AppService {
         absensi: '/absensi',
         perizinan: '/perizinan',
         divisi: '/divisi',
-        grade: '/grade'
+        grade: '/grade',
+        lembur: '/lembur',
+        lemburconfig: '/lembur-config',
       }
     };
   }

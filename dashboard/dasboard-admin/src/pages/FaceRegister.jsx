@@ -1,82 +1,132 @@
 // src/pages/FaceRegister.jsx
-import React, { useEffect, useState } from "react";
+import React, { useState, navigate } from "react";
 import WebcamCapture from "../components/WebcamCapture";
+import { useParams, useNavigate } from "react-router-dom";
 import { faceApi } from "../api/axiosInstance";
+import { Button } from "@/components/ui/button";
 
-export default function FaceRegister({ karyawanId }) {
-  const [status, setStatus] = useState({ count: 0 });
+export default function FaceRegister({ karyawanId: nip, onCancel, onBack }) {
   const [loading, setLoading] = useState(false);
-  const [embeddingGenerated, setEmbeddingGenerated] = useState(false);
+  const [photoBase64, setPhotoBase64] = useState(null);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const navigate = useNavigate();
 
-  const loadStatus = async () => {
-    const res = await faceApi.getFaceStatus(karyawanId);
-    setStatus(res.data);
+  /* ================== CAPTURE ================== */
+  const handleCapture = (base64) => {
+    setPhotoBase64(base64);
+    setHasSubmitted(false);
   };
 
-  useEffect(() => {
-    loadStatus();
-  }, []);
+  /* ================== SUBMIT ================== */
+  const handleSubmit = async () => {
+    if (!photoBase64) {
+      alert("Ambil foto wajah terlebih dahulu");
+      return;
+    }
 
-  const handleCapture = async (base64) => {
-    if (status.count >= 5) return alert("Jumlah foto sudah 5!");
-
-    const blob = await fetch(base64).then((r) => r.blob());
-    await faceApi.uploadFace(karyawanId, blob);
-    await loadStatus();
-  };
-
-  const handleReset = async () => {
-    await faceApi.resetFaces(karyawanId);
-    setEmbeddingGenerated(false);
-    await loadStatus();
-  };
-
-  const handleGenerateEmbedding = async () => {
     setLoading(true);
     try {
-      await faceApi.generateEmbedding(karyawanId);
-      setEmbeddingGenerated(true);
-      alert("Embedding berhasil dibuat!");
+      const blob = await fetch(photoBase64).then((r) => r.blob());
+      const form = new FormData();
+      form.append("file", blob, "face.jpg");
+
+      await faceApi.post(`/update/${nip}`, form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setHasSubmitted(true);
+      alert("Foto wajah berhasil disimpan");
     } catch (err) {
       console.error(err);
-      alert("Gagal generate embedding");
+      alert("Gagal menyimpan foto wajah");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
+  };
+
+  /* ================== RESET ================== */
+  const handleReset = () => {
+    if (!window.confirm("Ambil ulang foto wajah?")) return;
+    setPhotoBase64(null);
+    setHasSubmitted(false);
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Registrasi Wajah Karyawan</h2>
+    <div className="bg-white rounded-xl shadow-sm p-6">
+      <h2 className="text-lg font-semibold mb-4">Registrasi Wajah</h2>
 
-      <p className="mb-2">
-        Foto tersimpan: <b>{status.count}/5</b>
-      </p>
+      {/* ================= CONTENT ================= */}
+      <div className="flex gap-6 items-start">
+        {/* Webcam (SELALU AKTIF) */}
+        <div>
+          <WebcamCapture onCapture={handleCapture} disabled={loading} />
+        </div>
 
-      {status.count < 5 && <WebcamCapture onCapture={handleCapture} />}
+        {/* Divider */}
+        <div className="w-px bg-gray-200 self-stretch" />
 
-      {status.count > 0 && (
-        <button
-          onClick={handleReset}
-          className="mt-4 px-4 py-2 bg-red-600 text-white rounded"
+        {/* Preview */}
+        <div className="flex flex-col gap-3 min-w-[220px]">
+          <p className="text-sm text-gray-600">Foto ini digunakan untuk:</p>
+          <ul className="text-sm text-gray-600 list-disc ml-4">
+            <li>Avatar karyawan</li>
+            <li>Face Recognition</li>
+          </ul>
+
+          {photoBase64 ? (
+            <div>
+              <p className="text-sm font-medium mb-2">Preview Foto</p>
+              <img
+                src={photoBase64}
+                alt="Preview"
+                className="w-32 h-32 rounded-lg border object-cover"
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">
+              Silakan ambil foto wajah
+            </p>
+          )}
+
+          {hasSubmitted && (
+            <p className="text-sm text-green-700 font-medium">
+              ✔ Foto wajah sudah tersimpan
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* ================= ACTION ================= */}
+      <div className="flex justify-between items-center mt-6">
+        {/* KIRI */}
+        <Button
+          variant="outline"
+          onClick={() => navigate("/karyawan")}
+          className="border text-white bg-gray-700 py-2 rounded-lg hover:bg-gray-800"
         >
-          Reset Foto
-        </button>
-      )}
+          Batal
+        </Button>
 
-      {status.count === 5 && !embeddingGenerated && (
-        <button
-          onClick={handleGenerateEmbedding}
-          className="mt-4 px-4 py-2 bg-green-600 text-white rounded"
-        >
-          {loading ? "Memproses..." : "Generate Embedding"}
-        </button>
-      )}
+        {/* KANAN */}
+        <div className="flex gap-3"> 
+          <Button
+            variant="outline"
+            onClick={handleReset}
+            disabled={!photoBase64 || loading}
+            className=" bg-red-700 hover:bg-red-800 text-white"
+          >
+            Ulangi Foto
+          </Button>
 
-      {embeddingGenerated && (
-        <p className="mt-4 text-green-700 font-semibold">
-          ✔ Embedding sudah dibuat!
-        </p>
-      )}
+          <Button
+            onClick={handleSubmit}
+            disabled={loading || !photoBase64}
+            className="bg-teal-700 hover:bg-teal-800"
+          >
+            {loading ? "Menyimpan..." : "Simpan Foto"}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

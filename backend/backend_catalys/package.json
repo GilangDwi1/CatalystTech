@@ -29,6 +29,7 @@
     "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/schedule": "^6.1.0",
     "@nestjs/serve-static": "^5.0.4",
     "@prisma/client": "^6.18.0",
     "@types/bcrypt": "^6.0.0",
@@ -53,6 +54,7 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
+    "@types/cron": "^2.0.1",
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.18.13",
@@ -87,9 +89,12 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
+    }
   },
   "prisma": {
-    "seed": "ts-node prisma/seed/seed.ts"
+    "seed": "ts-node prisma/seed/seed_admin.ts"
   }
 }

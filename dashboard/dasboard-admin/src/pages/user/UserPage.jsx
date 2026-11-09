@@ -107,17 +107,17 @@ export default function UserPage() {
     }
   };
 
-  if (loading) return <p className="text-center mt-10">Memuat data...</p>;
+  if (loading) return <p className="p-8 ml-64">Memuat data...</p>;
 
   return (
-    <div className="flex">
+    <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
 
-      <div className="flex-1 p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Manajemen User</h1>
+      <div className="flex-1 ml-64 p-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-800">Manajemen User</h1>
           <Button
-            className="bg-teal-800 hover:bg-teal-900"
+            className="bg-teal-700 hover:bg-teal-800 text-white"
             onClick={() => {
               setFormData({});
               setEditId(null);
@@ -129,100 +129,110 @@ export default function UserPage() {
         </div>
 
         {/* 🔍 Search + Filter */}
-        <div className="flex gap-3 mb-4">
-          {/* Search */}
-          <input
-            type="text"
-            placeholder="Cari NIP atau nama..."
-            value={filters.search}
-            onChange={(e) =>
-              setFilters((prev) => ({ ...prev, search: e.target.value }))
-            }
-            className="border rounded-md px-3 py-2 w-1/3"
-          />
+        <div className="bg-white p-4 rounded-xl shadow-sm mb-6">
+          <div className="flex flex-wrap gap-3">
+            <div className="flex gap-2 flex-1 min-w-[300px]">
+              <input
+                type="text"
+                placeholder="Cari NIP atau nama..."
+                value={filters.search}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, search: e.target.value }))
+                }
+                className="border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
 
-          {/* Status aktif */}
-          <select
-            value={filters.is_active}
-            onChange={(e) =>
-              setFilters((prev) => ({
-                ...prev,
-                is_active: e.target.value,
-              }))
-            }
-            className="border rounded-md px-3 py-2"
-          >
-            <option value="">Semua Status</option>
-            <option value="true">Aktif</option>
-            <option value="false">Nonaktif</option>
-          </select>
+            {/* Status aktif */}
+            <select
+              value={filters.is_active}
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  is_active: e.target.value,
+                }))
+              }
+              className="border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <option value="">Semua Status</option>
+              <option value="true">Aktif</option>
+              <option value="false">Nonaktif</option>
+            </select>
+          </div>
         </div>
 
         {/* 🔹 Table */}
-        <table className="w-full border border-[#2B484F] shadow-sm rounded-lg overflow-hidden">
-          <thead className="bg-[#2B484F] text-white">
-            <tr>
-              <th className="p-2 text-center">No</th>
-              <th className="p-2 text-center">NIP</th>
-              <th className="p-2 text-center">Nama Karyawan</th>
-              <th className="p-2 text-center">Role</th>
-              <th className="p-2 text-center">Status</th>
-              <th className="p-2 text-center">Aksi</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {users.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-[#2B484F] text-white">
               <tr>
-                <td colSpan={5} className="text-center p-4">
-                  Tidak ada data user ditemukan.
-                </td>
+                <th className="p-3 text-center w-16">No</th>
+                <th className="p-3">NIP</th>
+                <th className="p-3">Nama Karyawan</th>
+                <th className="p-3">Role</th>
+                <th className="p-3 text-center">Status</th>
+                <th className="p-3 text-center">Aksi</th>
               </tr>
-            ) : (
-              users.map((u, idx) => (
-                <tr key={u.id}>
-                  <td className="p-2 text-center">{idx + 1}</td>
-                  <td className="p-2 text-center">{u.NIP}</td>
-                  <td className="p-2 text-center">{u.karyawan?.nama || "-"}</td>
-                  <td className="p-2 text-center capitalize">{u.role}</td>
-                  <td className="p-2 text-center">
-                    {u.is_active ? (
-                      <span className="text-green-600 font-semibold">
-                        Aktif
-                      </span>
-                    ) : (
-                      <span className="text-red-600 font-semibold">
-                        Tidak Aktif
-                      </span>
-                    )}
-                  </td>
-                  <td className="p-2 text-center">
-                    <Button
-                      onClick={() => {
-                        setEditId(u.id);
-                        setFormData({
-                          ...u,
-                          karyawan: u.karyawan,
-                        });
-                        setModalOpen(true);
-                      }}
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white mr-2"
-                    >
-                      Edit
-                    </Button>
+            </thead>
 
-                    <Button
-                      onClick={() => handleDelete(u.id)}
-                      className="bg-red-600 hover:bg-red-700 text-white"
-                    >
-                      Hapus
-                    </Button>
+            <tbody>
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center p-6 text-gray-500">
+                    Tidak ada data user ditemukan.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                users.map((u, idx) => (
+                  <tr
+                    key={u.id}
+                    className="border-t hover:bg-gray-50 transition"
+                  >
+                    <td className="p-3 text-center">{idx + 1}</td>
+                    <td className="p-3">{u.NIP}</td>
+                    <td className="p-3 font-medium text-gray-900">
+                      {u.karyawan?.nama || "-"}
+                    </td>
+                    <td className="p-3 capitalize">{u.role}</td>
+                    <td className="p-3 text-center">
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          u.is_active
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {u.is_active ? "Aktif" : "Nonaktif"}
+                      </span>
+                    </td>
+                    <td className="p-3 text-center flex justify-center gap-2">
+                      <Button
+                        onClick={() => {
+                          setEditId(u.id);
+                          setFormData({
+                            ...u,
+                            karyawan: u.karyawan,
+                          });
+                          setModalOpen(true);
+                        }}
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white h-8 px-3 text-xs"
+                      >
+                        Edit
+                      </Button>
+
+                      <Button
+                        onClick={() => handleDelete(u.id)}
+                        className="bg-red-500 hover:bg-red-600 text-white h-8 px-3 text-xs"
+                      >
+                        Hapus
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Modal */}

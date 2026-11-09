@@ -1,5 +1,6 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -7,13 +8,13 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: { nip: string; password: string }) {
+  async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto.nip, loginDto.password);
   }
 
   @Post('flutter-login')
   @HttpCode(HttpStatus.OK)
-  async flutterLogin(@Body() loginDto: { nip: string; password: string }) {
+  async flutterLogin(@Body() loginDto: LoginDto) {
     return this.authService.flutterLogin(loginDto.nip, loginDto.password);
   }
 }

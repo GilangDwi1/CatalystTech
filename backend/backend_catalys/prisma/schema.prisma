@@ -13,17 +13,20 @@ enum JenisAbsen {
   PULANG
 }
 
+
 enum StatusAbsen {
   HADIR
   TERLAMBAT
+  PULANG_CEPAT
   ALPHA
-  CUTI
-  SAKIT
   IZIN
-  WFH
+  LEMBUR
+  LIBUR
 }
 
 enum JenisIzin {
+  TERLAMBAT
+  PULANG_CEPAT
   SAKIT
   CUTI
   IZIN
@@ -68,6 +71,8 @@ model Karyawan {
 
   absen         Absen[]
   izin          Izin[]
+  lembur        Lembur[]
+  absenSummary  AbsenSummary[]
   
   faces         KaryawanFace[]
   embedding     FaceEmbedding?
@@ -94,7 +99,7 @@ model Absen {
   id             Int             @id @default(autoincrement())
   id_karyawan    Int
   id_config      Int             // FK ke config
-  waktu          DateTime
+  waktu          DateTime?
   jenis          JenisAbsen
   status         StatusAbsen
   device_id      String?
@@ -105,6 +110,7 @@ model Absen {
 
   karyawan       Karyawan        @relation(fields: [id_karyawan], references: [id], onDelete: Cascade)
   config         AbsensiConfig   @relation(fields: [id_config], references: [id])
+  @@unique([id_karyawan, id_config])
 }
 
 
@@ -128,11 +134,13 @@ model AbsensiConfig {
   id            Int       @id @default(autoincrement())
   tanggal       DateTime  // hari absensi
   jam_mulai     DateTime  // kapan kamera ON
+  batas_absen   DateTime?
   jam_selesai   DateTime  // kapan kamera OFF
   jenis         JenisAbsen // datang atau pulang
   dibuat_oleh   Int       // user HRD
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
+  alpha_generated Boolean   @default(false)
 
   user          User      @relation(fields: [dibuat_oleh], references: [id])
   absen         Absen[] 
@@ -156,4 +164,51 @@ model FaceEmbedding {
   updated_at   DateTime  @updatedAt
 
   karyawan     Karyawan  @relation(fields: [id_karyawan], references: [id], onDelete: Cascade)
+}
+
+model Lembur {
+  id              Int       @id @default(autoincrement())
+  id_karyawan     Int
+  id_config_lembur Int
+  durasi_menit    Int
+  jam_mulai       DateTime
+  jam_selesai     DateTime
+  dibuat_pada     DateTime  @default(now())
+
+  karyawan     Karyawan     @relation(fields: [id_karyawan], references: [id])
+  config       ConfigLembur @relation(fields: [id_config_lembur], references: [id])
+
+  @@unique([id_karyawan, id_config_lembur])
+}
+
+model ConfigLembur {
+  id          Int      @id @default(autoincrement())
+  tanggal     DateTime
+  jam_mulai   DateTime
+  jam_selesai DateTime
+  dibuat_pada DateTime @default(now())
+
+  lembur Lembur[]
+
+  @@unique([tanggal])
+}
+
+model AbsenSummary {
+  id            Int          @id @default(autoincrement())
+  tanggal       DateTime
+  id_karyawan   Int
+  datang        DateTime?
+  pulang        DateTime?
+  status        StatusAbsen
+  durasi_lembur Int?         // ⬅ durasi lembur dalam menit
+  keterangan    String?
+  terlambat     Boolean      @default(false)
+  pulang_cepat  Boolean      @default(false)
+  lembur        Boolean      @default(false)
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+
+  karyawan      Karyawan     @relation(fields: [id_karyawan], references: [id])
+  
+  @@unique([tanggal, id_karyawan])
 }

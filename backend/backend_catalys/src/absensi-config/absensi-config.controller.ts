@@ -33,9 +33,15 @@ export class AbsensiConfigController {
     return this.service.findAll();
   }
 
-  @Get('camera-status')
-  async cameraStatus(@Query('jenis') jenis: 'DATANG' | 'PULANG') {
-    return this.service.checkCameraStatus(jenis);
+  @Get("detail")
+  async detail(@Query("tanggal") tanggal: string) {
+    return this.service.detailKehadiran(tanggal);
+  }
+
+  @Get("halamanKehadiran")
+  @Roles('admin', 'HRD','kadiv')
+  async halamanKehadiran(@Query("tanggal") tanggal?: string) {
+    return this.service.halamanKehadiran(tanggal);
   }
 
   @Get(':id')
@@ -55,4 +61,6 @@ export class AbsensiConfigController {
   remove(@Param('id') id: string) {
     return this.service.remove(+id);
   }
+
+  
 }

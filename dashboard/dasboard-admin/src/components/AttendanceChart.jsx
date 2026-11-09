@@ -5,22 +5,35 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
+  CartesianGrid,
+  Cell,
 } from "recharts";
+
+const COLORS = {
+  Hadir: "#16a34a", // hijau
+  Terlambat: "#facc15", // kuning
+  Alpha: "#dc2626", // merah
+  Izin: "#2563eb", // biru
+};
 
 export default function AttendanceChart({ data }) {
   return (
-    <div className="bg-white shadow-md rounded-xl p-5">
-      <h3 className="font-semibold text-gray-700 mb-4">
-        Statistik Kehadiran Tahunan (2025)
-      </h3>
-      <ResponsiveContainer width="100%" height={260}>
-        <BarChart data={data}>
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Tooltip />
-          <Bar dataKey="attendance" radius={[6, 6, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis allowDecimals={false} />
+        <Tooltip />
+
+        <Bar dataKey="value">
+          {data.map((entry, index) => (
+            <Cell
+              key={`cell-${index}`}
+              fill={COLORS[entry.name] || "#8884d8"}
+            />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
   );
 }

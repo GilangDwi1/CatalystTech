@@ -11,6 +11,9 @@ export class CreateAbsensiConfigDto {
   @IsDate()
   jam_selesai: Date;
 
+  @IsDate()
+  batas_absen: Date;
+
   @IsEnum(JenisAbsen)
   jenis: JenisAbsen;
 

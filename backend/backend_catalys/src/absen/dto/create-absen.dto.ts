@@ -1,5 +1,5 @@
 export class CreateAbsenDto {
-  id_karyawan: number;
+  id_karyawan: string;
   device_id?: string;
   lokasi?: string;
   keterangan?: string;

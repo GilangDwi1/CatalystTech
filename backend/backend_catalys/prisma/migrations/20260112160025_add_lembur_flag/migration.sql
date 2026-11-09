@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE `absen` MODIFY `status` ENUM('HADIR', 'TERLAMBAT', 'PULANG_CEPAT', 'ALPHA', 'IZIN', 'LEMBUR', 'LIBUR') NOT NULL;
+
+-- AlterTable
+ALTER TABLE `absensummary` ADD COLUMN `lembur` BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN `pulang_cepat` BOOLEAN NOT NULL DEFAULT false,
+    ADD COLUMN `terlambat` BOOLEAN NOT NULL DEFAULT false,
+    MODIFY `status` ENUM('HADIR', 'TERLAMBAT', 'PULANG_CEPAT', 'ALPHA', 'IZIN', 'LEMBUR', 'LIBUR') NOT NULL;

@@ -8,6 +8,7 @@ import {
   Container,
   User,
   ClipboardPen,
+  Clock2,
 } from "lucide-react";
 import logo from "../assets/logo-bsk.webp";
 
@@ -16,100 +17,105 @@ export default function Sidebar() {
   const navigate = useNavigate();
 
   const isActive = (path) =>
-    location.pathname === path ? "bg-[#2B484F] text-white" : "text-gray-700";
+    location.pathname === path
+      ? "bg-[#2B484F] text-white"
+      : "text-gray-700 hover:bg-gray-200";
 
   const handleLogout = () => {
-    // Hapus token dari localStorage
     localStorage.removeItem("token");
-    localStorage.removeItem("user"); // kalau kamu simpan info user juga
-
-    // Arahkan ke halaman login
+    localStorage.removeItem("user");
     navigate("/");
   };
 
   const user = JSON.parse(localStorage.getItem("user"));
-  const role = user?.role; // Misalnya role "admin" atau "user"
+  const role = user?.role;
 
   return (
-    <div className="w-64 h-screen bg-gray-100 flex flex-col justify-between py-6 shadow-md">
-      <div className="flex flex-col items-center">
+    <aside className="fixed top-0 left-0 w-64 h-screen bg-white shadow-md flex flex-col justify-between py-6 z-50">
+      {/* ================= TOP ================= */}
+      <div className="flex flex-col items-center gap-1 overflow-y-auto">
         <img src={logo} alt="BSK" className="w-32 mb-6" />
 
-        <Link
+        <SidebarLink
           to="/dashboard"
-          className={`flex items-center gap-2 p-3 w-48 rounded-lg ${isActive(
-            "/dashboard"
-          )}`}
-        >
-          <Home /> Home
-        </Link>
-
-        <Link
+          icon={<Home />}
+          label="Dashboard"
+          isActive={isActive}
+        />
+        <SidebarLink
           to="/kehadiran"
-          className={`flex items-center gap-2 p-3 w-48 rounded-lg ${isActive(
-            "/kehadiran"
-          )}`}
-        >
-          <Calendar /> Kehadiran
-        </Link>
+          icon={<Calendar />}
+          label="Kehadiran"
+          isActive={isActive}
+        />
+        <SidebarLink
+          to="/lembur-config-page"
+          icon={<Clock2 />}
+          label="Lembur"
+          isActive={isActive}
+        />
 
         {role === "HRD" && (
-          <Link
+          <SidebarLink
             to="/perizinan"
-            className={`flex items-center gap-2 p-3 w-48 rounded-lg ${isActive(
-              "/perizinan"
-            )}`}
-          >
-            <ClipboardPen /> Perizinan
-          </Link>
+            icon={<ClipboardPen />}
+            label="Perizinan"
+            isActive={isActive}
+          />
         )}
 
-        <Link
+        <SidebarLink
           to="/karyawan"
-          className={`flex items-center gap-2 p-3 w-48 rounded-lg ${isActive(
-            "/karyawan"
-          )}`}
-        >
-          <Users /> Data Karyawan
-        </Link>
-
-        <Link
+          icon={<Users />}
+          label="Data Karyawan"
+          isActive={isActive}
+        />
+        <SidebarLink
           to="/grade"
-          className={`flex items-center gap-2 p-3 w-48 rounded-lg ${isActive(
-            "/grade"
-          )}`}
-        >
-          <AlignEndHorizontal /> Grade
-        </Link>
-
-        <Link
+          icon={<AlignEndHorizontal />}
+          label="Grade"
+          isActive={isActive}
+        />
+        <SidebarLink
           to="/divisi"
-          className={`flex items-center gap-2 p-3 w-48 rounded-lg ${isActive(
-            "/divisi"
-          )}`}
-        >
-          <Container /> Divisi
-        </Link>
+          icon={<Container />}
+          label="Divisi"
+          isActive={isActive}
+        />
 
         {role === "admin" && (
-          <Link
+          <SidebarLink
             to="/users"
-            className={`flex items-center gap-2 p-3 w-48 rounded-lg ${isActive(
-              "/users"
-            )}`}
-          >
-            <User /> User
-          </Link>
+            icon={<User />}
+            label="User"
+            isActive={isActive}
+          />
         )}
       </div>
 
-      {/* Tombol Logout */}
+      {/* ================= LOGOUT ================= */}
       <button
         onClick={handleLogout}
-        className="flex items-center gap-2 p-3 w-48 mx-auto rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
+        className="flex items-center gap-3 p-3 w-48 mx-auto rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
       >
-        <LogOut /> Logout
+        <LogOut size={18} />
+        Logout
       </button>
-    </div>
+    </aside>
+  );
+}
+
+/* ================= REUSABLE LINK ================= */
+function SidebarLink({ to, icon, label, isActive }) {
+  return (
+    <Link
+      to={to}
+      className={`flex items-center gap-3 px-4 py-2 w-48 rounded-lg transition ${isActive(
+        to
+      )}`}
+    >
+      {icon}
+      <span className="text-sm font-medium">{label}</span>
+    </Link>
   );
 }

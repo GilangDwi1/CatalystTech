@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axiosInstance";
 import bglogin from "../assets/bg-login.webp";
 import "./index.css";
 
@@ -16,14 +16,13 @@ export default function Login() {
       [e.target.name]: e.target.value,
     });
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:3000/auth/login", {
+      const response = await api.post("/auth/login", {
         nip: formData.nip,
         password: formData.password,
       });
@@ -50,63 +49,82 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#2B484F]">
-      <div className="login-bg"></div>
-      <div className="flex flex-row w-[1355px] h-[780px] bg-white/20 backdrop-blur-md rounded-3xl overflow-hidden shadow-2xl p-10">
-        <div className="bg-white/10 w-[563px] h-[600px] p-10 flex flex-col justify-center rounded-3xl m-15">
-          <h2 className="text-3xl font-bold text-[#333333] mb-6">Login</h2>
+    <div className="min-h-screen flex items-center justify-center bg-[#2B484F] p-4">
+      <div className="login-bg fixed inset-0 z-0"></div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm text-[#333333] mb-1">NIP</label>
-              <input
-                type="text"
-                name="nip"
-                value={formData.nip}
-                onChange={handleChange}
-                placeholder="Masukkan NIP"
-                className="w-[400px] h-[55px] p-6 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
-            </div>
+      <div className="relative z-10 flex flex-col md:flex-row w-full max-w-6xl h-auto md:h-[700px] bg-white/20 backdrop-blur-md rounded-3xl overflow-hidden shadow-2xl">
+        {/* Bagian Form (Kiri) */}
+        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white/30">
+          <div className="max-w-md mx-auto w-full">
+            <h2 className="text-3xl font-bold text-[#333333] mb-2">Login</h2>
+            <p className="text-gray-700 mb-8">
+              Selamat datang kembali! Silakan login.
+            </p>
 
-            <div>
-              <label className="block text-sm text-[#333333] mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Password"
-                className="w-[400px] h-[55px] p-6 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              />
-              <a
-                href="#"
-                className="text-sm text-yellow-400 hover:underline font-bold"
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-[#333333] mb-1">
+                  NIP
+                </label>
+                <input
+                  type="text"
+                  name="nip"
+                  value={formData.nip}
+                  onChange={handleChange}
+                  placeholder="Masukkan NIP"
+                  className="w-full h-[50px] px-4 rounded-lg bg-white border border-transparent focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#333333] mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Password"
+                  className="w-full h-[50px] px-4 rounded-lg bg-white border border-transparent focus:border-yellow-400 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 transition-all"
+                />
+                <div className="flex justify-end mt-2">
+                  <a
+                    href="#"
+                    className="text-sm text-yellow-600 hover:text-yellow-700 font-semibold hover:underline"
+                  >
+                    Lupa Password?
+                  </a>
+                </div>
+              </div>
+
+              {error && (
+                <div
+                  className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+                  role="alert"
+                >
+                  <span className="block sm:inline text-sm">{error}</span>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-[50px] bg-yellow-400 text-[#333333] font-bold rounded-lg hover:bg-yellow-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
               >
-                Forgot Password?
-              </a>
-            </div>
-
-            {error && (
-              <p className="text-red-500 text-sm font-semibold">{error}</p>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-[400px] h-[55px] bg-yellow-400 text-white font-semibold rounded-md hover:bg-yellow-500 transition disabled:opacity-50"
-            >
-              {loading ? "Signing in..." : "Sign in"}
-            </button>
-          </form>
+                {loading ? "Sedang Masuk..." : "Masuk"}
+              </button>
+            </form>
+          </div>
         </div>
 
+        {/* Bagian Gambar (Kanan) */}
         <div
-          className="flex-1 bg-cover bg-center rounded-3xl"
+          className="hidden md:block w-1/2 bg-cover bg-center"
           style={{ backgroundImage: `url(${bglogin})` }}
-        ></div>
+        >
+          <div className="h-full w-full bg-black/10"></div>
+        </div>
       </div>
     </div>
   );
