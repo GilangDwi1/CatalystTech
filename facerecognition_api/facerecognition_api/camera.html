@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Auto Capture 5 Photos</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #fff;
+      font-family: Arial;
+      text-align: center;
+      margin-top: 30px;
+    }
+    video {
+      border: 3px solid #4caf50;
+      border-radius: 10px;
+      width: 480px;
+      height: 360px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h2>📸 Auto Capture 5 Photos (0 - 4)</h2>
+  <video id="camera" autoplay></video><br>
+  <button id="start">Mulai Ambil Foto</button>
+  <div id="status">Menunggu...</div>
+
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <script>
+    const video = document.getElementById("camera");
+    const canvas = document.getElementById("canvas");
+    const startBtn = document.getElementById("start");
+    const statusDiv = document.getElementById("status");
+
+    // 1️⃣ Aktifkan kamera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+      })
+      .catch(err => {
+        alert("Gagal membuka kamera: " + err);
+      });
+
+    // 2️⃣ Ambil 5 foto otomatis
+    startBtn.addEventListener("click", async () => {
+      const name = prompt("Masukkan nama untuk disimpan (tanpa spasi):");
+      if (!name) return alert("Nama wajib diisi!");
+
+      let count = 0;
+      statusDiv.innerText = "Mulai mengambil foto...";
+
+      const interval = setInterval(() => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(async (blob) => {
+          const formData = new FormData();
+          formData.append("file", blob, `${count}.jpg`);
+
+          await fetch(`http://127.0.0.1:8000/register/${name}`, {
+            method: "POST",
+            body: formData
+          });
+
+          statusDiv.innerText = `✅ Foto ${count} tersimpan`;
+        }, "image/jpeg");
+
+        count++;
+        if (count > 4) { // 0 - 4 total 5 foto
+          clearInterval(interval);
+          statusDiv.innerText = "🎉 Selesai ambil semua foto (0–4)";
+        }
+      }, 700); // ambil tiap 0.7 detik
+    });
+  </script>
+</body>
+</html>
